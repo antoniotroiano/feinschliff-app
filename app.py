@@ -24,6 +24,7 @@ from checker import PERSPEKTIVEN, SPACY_MODEL, STANDARD_ZEITEN, ZEITEN, check_te
 from satzbau import schachtel_kandidaten
 from modules import FARBEN, GRUPPEN, KI_NUR, NAMEN, OFFLINE, gewaehlt, lese_einstellungen, lese_offline
 
+VERSION = "0.1.0"  # Versionsnummer: bei jeder Veröffentlichung hier und in CHANGELOG.md anpassen
 PORT = int(os.environ.get("PORT", 8765))  # per Umgebungsvariable änderbar
 MAX_OFFLINE = 150_000  # Zeichen; längere Texte bitte abschnittsweise prüfen
 
@@ -66,7 +67,7 @@ def _unerwartet(e):
 def index():
     cfg = {"zeiten": ZEITEN, "standard": list(STANDARD_ZEITEN), "module": NAMEN, "farben": FARBEN, "reihenfolge": [m["id"] for g in GRUPPEN for m in g["module"]],
            "gruppen": [{"name": g["name"], "farbe": g["farbe"]} for g in GRUPPEN]}
-    return render_template("index.html", gruppen=GRUPPEN, modelle=list(MODELLE), cfg=cfg)
+    return render_template("index.html", gruppen=GRUPPEN, modelle=list(MODELLE), cfg=cfg, version=VERSION)
 
 
 def _lesen():
@@ -190,7 +191,7 @@ def liste_uebernehmen():
 
 def _start_info():
     java = shutil.which("java")
-    log.info("Feinschliff startet (Python %s, %s)", platform.python_version(), platform.system())
+    log.info("Feinschliff %s startet (Python %s, %s)", VERSION, platform.python_version(), platform.system())
     log.info("spaCy-Modell: %s | Port: %d | KI-Key gesetzt: %s | Java gefunden: %s",
              SPACY_MODEL, PORT, "ja" if os.environ.get("ANTHROPIC_API_KEY") else "nein",
              "ja" if java else "nein (Rechtschreibung offline nicht verfügbar)")
