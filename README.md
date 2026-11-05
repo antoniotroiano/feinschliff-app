@@ -239,7 +239,7 @@ den Key nicht und lege ihn nicht im Projektordner ab.
 |---|---|---|
 | `ANTHROPIC_API_KEY` | API-Key für die KI-Prüfung | nicht gesetzt |
 | `ANTHROPIC_AUTH_TOKEN` | Alternative zum Key (Token-Anmeldung des SDK) | nicht gesetzt |
-| `ANTHROPIC_BASE_URL` | Anderer Endpunkt für KI-Anfragen. Wenn gesetzt, gehen deine Texte **nicht** an die Anthropic-API, sondern dorthin. Die App warnt beim Start. Normalerweise **nicht setzen**. | nicht gesetzt |
+| `ANTHROPIC_BASE_URL` | Adresse eines **anderen Zugangs zu denselben Anthropic-Modellen**, zum Beispiel ein Gateway oder Proxy der Firma. Gesetzt gehen deine Texte **nicht** direkt an Anthropic, sondern an diese Adresse. Das ist **keine Möglichkeit, eine andere KI** (OpenAI, Gemini …) zu benutzen. Ob ein bestimmtes Gateway mit Feinschliff funktioniert, ist nicht getestet. Die App warnt beim Start. Normalerweise **nicht setzen**. | nicht gesetzt |
 | `SPACY_MODEL` | Name des spaCy-Modells | `de_core_news_lg` |
 | `FEINSCHLIFF_PORT` | Port des lokalen Servers (Zahl von 1 bis 65535). Ist er belegt, beendet sich die App mit einer Meldung, ohne den Browser zu öffnen. | `8765` |
 | `LOG_LEVEL` | Ausführlichkeit der Terminal-Meldungen: `DEBUG`, `INFO`, `WARNING` | `INFO` |
