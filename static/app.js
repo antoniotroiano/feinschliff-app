@@ -54,6 +54,13 @@
     return n;
   };
 
+  // Tastenbeschriftung nach Betriebssystem (Mac: ⌘ und ⌥, sonst Strg und Alt)
+  const MAC = /Mac|iPhone|iPad/.test(navigator.platform || navigator.userAgent || '');
+  const TASTE = { pruefen: MAC ? '⌘↵' : 'Strg+↵', weiter: MAC ? '⌥J' : 'Alt+J', zurueck: MAC ? '⌥K' : 'Alt+K' };
+  document.querySelectorAll('#go kbd').forEach((k) => { k.textContent = TASTE.pruefen; });
+  $('#prev').title = `Vorheriger Fund (${TASTE.zurueck})`;
+  $('#next').title = `Nächster Fund (${TASTE.weiter})`;
+
   // ---- Editor ----------------------------------------------------------
   try { editor.contentEditable = 'plaintext-only'; } catch (e) { /* älterer Browser */ }
   const plain = editor.contentEditable === 'plaintext-only';
@@ -228,8 +235,8 @@
     }
     body.append(dl);
     section('Bedienung', [
-      ['⌘ ↵', null, 'Offline prüfen.'],
-      ['⌥ J / ⌥ K', null, 'Nächster oder vorheriger Fund.'],
+      [TASTE.pruefen, null, 'Offline prüfen.'],
+      [`${TASTE.weiter} / ${TASTE.zurueck}`, null, 'Nächster oder vorheriger Fund.'],
       ['Klick', null, 'Auf eine Markierung oder einen Fund springt zur Gegenstelle. Bearbeitete Stellen werden abgehakt.'],
       ['In Ordnung', null, 'Am Fund: Du hast die Stelle geprüft, sie stimmt so. Die App merkt es sich für diesen Satz und blendet den Fund aus, bis sich der Satz ändert.'],
       ['Umformulieren', null, 'Am Fund (KI): schlägt für den Satz zwei Fassungen vor. „Übernehmen“ ersetzt den Satz im Text.'],
@@ -242,7 +249,7 @@
     const box = el('div', 'empty');
     box.append(el('p', '', 'Noch keine Prüfung.'));
     const ol = el('ol');
-    ['Text in die Mitte einfügen.', 'Links die gewünschten Prüfungen wählen.', '„Prüfen“ klicken (⌘↵). Funde erscheinen hier und im Text.']
+    ['Text in die Mitte einfügen.', 'Links die gewünschten Prüfungen wählen.', `„Prüfen“ klicken (${TASTE.pruefen}). Funde erscheinen hier und im Text.`]
       .forEach((t) => ol.append(el('li', '', t)));
     box.append(ol);
     listEl.append(box);
@@ -344,6 +351,9 @@
 
   // ---- Prüfen ---------------------------------------------------------------------
   function busy(on) {
+    // Editor währenddessen sperren: Sonst würden Änderungen beim Eintreffen des Ergebnisses überschrieben
+    editor.contentEditable = on ? 'false' : (plain ? 'plaintext-only' : 'true');
+    editor.setAttribute('aria-busy', String(on));
     [goBtn, aiBtn].forEach((b) => { b.disabled = on; });
     goBtn.setAttribute('aria-busy', String(on));
   }

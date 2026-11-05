@@ -1,7 +1,7 @@
 """Sprachrichtigkeit: Rechtschreibung/Grammatik (LanguageTool, offline) und einheitliche Schreibweisen.
 
 LanguageTool braucht Java. Das Paket language_tool_python lädt LanguageTool beim ersten Start einmalig
-herunter (ca. 260 MB, im Benutzer-Cache). Der Start der Java-Hilfe dauert einige Sekunden und erfolgt
+herunter (ca. 400 MB, im Benutzer-Cache). Der Start der Java-Hilfe dauert einige Sekunden und erfolgt
 erst bei der ersten Prüfung.
 """
 import atexit
@@ -10,17 +10,20 @@ import re
 import shutil
 import time
 from collections import Counter
+from functools import lru_cache
 from itertools import combinations
 from pathlib import Path
 
 import eigene_listen
-from checker import QUOTE_PATTERN, Finding
+from grundlagen import Finding
 
 LISTEN = Path(__file__).parent / "listen"
 log = logging.getLogger("erzaehlcheck.lt")
 
 # LanguageTool-Kategorien, die wir nicht melden (Stil prüfen wir mit eigenen Modulen)
 STIL_KATEGORIEN = {"STYLE", "REDUNDANCY", "PLAIN_ENGLISH", "GENDER_NEUTRALITY", "CREATIVE_WRITING", "COLLOQUIALISMS"}
+
+MIN_NAME = 3  # so oft muss ein unbekanntes Großwort vorkommen, damit es als Name gilt und nicht gemeldet wird
 
 _tool = None
 
@@ -38,14 +41,10 @@ def _lt():
     return _tool
 
 
-def _woerter(eingabe):
-    return {w.strip().lower() for w in eingabe.split(",") if w.strip()}
-
-
 def languagetool(text, spans, einst, notes):
     """Rechtschreibung (Rot) sowie Grammatik und Zeichensetzung (Gelb)."""
     dialog_mit = einst.get("dialog", True)
-    eigene = _woerter(einst.get("eigene", "")) | eigene_listen.lesen("namen_eigene")
+    eigene = eigene_listen.woerter_aus(einst.get("eigene", "")) | eigene_listen.lesen("namen_eigene")
     try:
         treffer = _lt().check(text)
     except Exception as e:  # fehlendes Java, Download gescheitert, Prozessfehler …
@@ -57,7 +56,7 @@ def languagetool(text, spans, einst, notes):
                      "Download Internet. Einzelheiten stehen im Terminal.")
         notes.append(f"Rechtschreibung und Grammatik konnten nicht geprüft werden: {grund} ({type(e).__name__})")
         return []
-    gross = Counter(re.findall(r"\b[A-ZÄÖÜ]\w+\b", text))  # mehrfach genannte Großwörter gelten als Namen
+    gross = Counter(re.findall(r"\b[A-ZÄÖÜ]\w+\b", text))  # mindestens dreimal genannte Großwörter gelten als Namen
     out, uebersprungen = [], set()
     for m in treffer:
         start, laenge = m.offset, max(m.error_length, 1)
@@ -69,10 +68,10 @@ def languagetool(text, spans, einst, notes):
         if not dialog_mit and any(a <= start < b for a, b in spans):
             continue
         rechtschreibung = kategorie == "TYPOS" or "SPELLER" in regel or "MORFOLOGIK" in regel
-        # Eigenname: vom Nutzer genannt, oder ein unbekanntes Großwort, das mehrfach im Text steht.
+        # Eigenname: vom Nutzer genannt, oder ein unbekanntes Großwort, das mindestens dreimal im Text steht.
         # Gezielte Regeln („seid“ statt „seit“) bleiben davon unberührt.
         unbekannt = "SPELLER_RULE" in regel or "MORFOLOGIK" in regel
-        if rechtschreibung and (wort.lower() in eigene or (unbekannt and wort[:1].isupper() and gross[wort] >= 2)):
+        if rechtschreibung and (wort.lower() in eigene or (unbekannt and wort[:1].isupper() and gross[wort] >= MIN_NAME)):
             uebersprungen.add(wort)
             continue
         if rechtschreibung:
@@ -156,6 +155,7 @@ def namen(doc):
     return out
 
 
+@lru_cache(maxsize=1)  # die mitgelieferte Liste ändert sich nur mit einem Neustart (siehe listen/README.md)
 def _varianten():
     paare = []
     for z in (LISTEN / "schreibvarianten.txt").read_text(encoding="utf-8").splitlines():

@@ -280,7 +280,9 @@ def lese_einstellungen(modules):
     zeit = modules.get("zeit")
     zeit_aktiv = isinstance(zeit, dict)
     gewaehlt = zeit.get("zeiten", []) if zeit_aktiv else []
+    gewaehlt = gewaehlt if isinstance(gewaehlt, list) else []
     erlaubt = [z for z in ZEITEN if z in gewaehlt]
-    p = (modules.get("perspektive") or {}).get("perspektive")
-    perspektive = p if p in PERSPEKTIVEN[1:] else PERSPEKTIVEN[0]
+    pers = modules.get("perspektive")
+    p = pers.get("perspektive") if isinstance(pers, dict) else None
+    perspektive = p if isinstance(p, str) and p in PERSPEKTIVEN[1:] else PERSPEKTIVEN[0]
     return zeit_aktiv, erlaubt, perspektive

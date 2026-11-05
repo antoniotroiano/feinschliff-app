@@ -1,9 +1,9 @@
 """Offline-Prüfungen zu Wiederholungen (spaCy). Direkte Rede ist im Doc maskiert."""
 import eigene_listen
-from checker import Finding
-from wortwahl import _liste
+from grundlagen import Finding
+from wortwahl import liste_laden
 
-AUSNAHMEN = _liste("wiederholung_ausnahmen.txt")
+AUSNAHMEN = liste_laden("wiederholung_ausnahmen.txt")
 INHALT = ("NOUN", "VERB", "ADJ", "ADV")  # Wortarten, die als Inhaltswörter zählen
 
 
@@ -29,11 +29,11 @@ def wortwiederholungen(doc, abstand, eigene):
         schluessel = {lemma, tok.lower_}
         for k in schluessel:
             if k in letzte and pos - letzte[k][0] <= abstand:
-                vor = letzte[k][1]
+                vor = letzte[k]
                 treffer[vor[0]] = vor[1]
                 treffer[pos] = tok
         for k in schluessel:
-            letzte[k] = (pos, (pos, tok))
+            letzte[k] = (pos, tok)
     out = []
     for pos in sorted(treffer):
         tok = treffer[pos]

@@ -22,6 +22,7 @@ API-Key einschaltest.
 - [Installation](#installation)
 - [Start](#start)
 - [Funde als „In Ordnung“ bestätigen](#funde-als-in-ordnung-bestätigen)
+- [KI-Vorschlag übernehmen](#ki-vorschlag-übernehmen)
 - [Satz umformulieren (KI)](#satz-umformulieren-ki)
 - [KI-Prüfung einrichten](#ki-prüfung-einrichten)
 - [Einstellungen und Umgebungsvariablen](#einstellungen-und-umgebungsvariablen)
@@ -72,7 +73,8 @@ rechten Spalte („Nicht geprüft …“).
 Bei den Modulen **Rechtschreibung und Grammatik** (offline und KI) gibt es einen Schalter, ob auch die
 **direkte Rede** geprüft werden soll (am Anfang an), und ein Feld für **Wörter, die nie als Fehler
 gelten**, zum Beispiel Namen deiner Figuren oder erfundene Wörter. Großwörter, die LanguageTool nicht
-kennt und die mehrfach im Text stehen, gelten automatisch als Namen. Welche Wörter so übersprungen
+kennt und die **mindestens dreimal** im Text stehen, gelten automatisch als Namen. Zwei Treffer reichen nicht,
+damit ein zweimal falsch geschriebenes Hauptwort nicht unbemerkt bleibt. Welche Wörter so übersprungen
 wurden, steht als Hinweis rechts.
 
 ## Farben und Zeichen im Text
@@ -104,11 +106,16 @@ Dieselbe Erklärung steht in der App unter **Legende**.
 
 ## Voraussetzungen
 
-- **Python 3** (getestet mit 3.13) und `pip`
-- **Java** für das Modul „Rechtschreibung und Grammatik“ (LanguageTool), getestet mit Java 21. Prüfen:
-  `java -version`. Ohne Java läuft die App trotzdem, nur dieses Modul meldet einen Hinweis.
+- **Betriebssystem:** Feinschliff wurde nur auf **macOS** getestet. Auf Linux sollte es genauso gehen. Auf Windows ist es
+  ungetestet: Die Befehle unten sind für ein Unix-Terminal geschrieben (unter Windows heißt die Aktivierung
+  `.venv\Scripts\activate`, und Umgebungsvariablen setzt du anders).
+- **Git**, um das Repository zu laden (alternativ lädst du es auf GitHub als ZIP herunter)
+- **Python 3** und `pip`. Getestet wurde mit **3.13**, andere Versionen sind nicht geprüft.
+- **Java** für das Modul „Rechtschreibung und Grammatik“ (LanguageTool), getestet mit **Java 21**. Prüfen:
+  `java -version`. Installieren zum Beispiel auf dem Mac mit `brew install openjdk` oder von <https://adoptium.net>.
+  Ohne Java läuft die App trotzdem, nur dieses Modul meldet einen Hinweis.
 - Ein Browser
-- Für die KI-Prüfung: ein **Anthropic-API-Key** (optional)
+- Für die KI-Prüfung: ein **Anthropic-API-Key** (optional, siehe [KI-Prüfung einrichten](#ki-prüfung-einrichten))
 - Speicherplatz: das spaCy-Modell `de_core_news_lg` belegt etwa **610 MB**, LanguageTool etwa **400 MB**
   im Benutzer-Cache (`~/.cache/language_tool_python`), dazu die Python-Pakete. Beides wurde auf einem
   Mac gemessen.
@@ -117,24 +124,29 @@ Dieselbe Erklärung steht in der App unter **Legende**.
 ## Installation
 
 ```bash
-cd <Projektordner>
+git clone https://github.com/antoniotroiano/feinschliff-app.git
+cd feinschliff-app
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 python -m spacy download de_core_news_lg
 ```
 
+Nach `source .venv/bin/activate` genügt `python` (statt `python3`). Die Installation lädt mehrere hundert Megabyte
+und dauert einige Minuten.
+
 Das deutsche spaCy-Modell wird einmalig geladen. Wie du ein anderes verwendest, steht
 [weiter unten](#anderes-spacy-modell-verwenden).
 
 **LanguageTool** (Rechtschreibung offline) lädt sich beim **ersten Prüfen** mit dem Modul „Rechtschreibung
-und Grammatik“ automatisch herunter. Das dauert je nach Verbindung eine Weile. Der Start danach dauert
-einige Sekunden, weitere Prüfungen sind schnell.
+und Grammatik“ automatisch herunter (etwa 400 MB). Das dauert je nach Verbindung eine Weile. Der Start danach dauert
+einige Sekunden, weitere Prüfungen sind schnell. Auch der **Start der App** braucht einige Sekunden, weil das
+spaCy-Modell vor dem Öffnen des Browsers geladen wird.
 
 ## Start
 
 ```bash
-cd <Projektordner>
+cd feinschliff-app
 source .venv/bin/activate
 python app.py
 ```
@@ -143,7 +155,7 @@ Der Browser öffnet sich unter <http://127.0.0.1:8765>. Zum Beenden im Terminal 
 
 1. Text in die mittlere Box einfügen (wird immer als reiner Text eingefügt).
 2. Links die gewünschten Prüfungen auswählen.
-3. **Prüfen** (⌘↵ oder Strg+Enter) für Offline-Module, **KI-Prüfung** für die KI-Module.
+3. **Prüfen** (auf dem Mac ⌘↵, sonst Strg+Enter) für Offline-Module, **KI-Prüfung** für die KI-Module.
 4. Funde in der Liste rechts anklicken, im Text korrigieren, erneut prüfen.
 
 ## Funde als „In Ordnung“ bestätigen
@@ -157,7 +169,7 @@ der Knopf **In Ordnung** (sichtbar, sobald du den Fund anklickst oder mit der Ma
 - Ändert sich der Satz, kommt der Hinweis wieder, denn die Bestätigung gilt nur für genau diesen Satz.
 - Über der Liste steht „n als ‚In Ordnung‘ ausgeblendet · anzeigen“. Dort holst du die bestätigten Funde zurück
   und kannst sie mit **Rückgängig** wieder zu offenen Funden machen.
-- Die Zähler und das Weiterschalten mit ⌥J und ⌥K überspringen bestätigte Funde.
+- Die Zähler und das Weiterschalten mit ⌥J und ⌥K (Alt+J und Alt+K) überspringen bestätigte Funde.
 - Gespeichert wird **im Browser** und nur als **Fingerabdruck** (eine kurze Zeichenfolge aus Modul, Wort und Satz),
   nicht als Text. Wie die übrigen Einstellungen gilt das pro Browser und geht verloren, wenn du den Browser-Speicher leerst.
 
@@ -188,8 +200,8 @@ Text davor und danach als Kontext an die KI. Du bekommst zwei bis drei Fassungen
 
 ## KI-Prüfung einrichten
 
-Die KI-Prüfung ist **optional**. Du brauchst dafür einen API-Key von Anthropic (in der Anthropic Console
-anlegen) und ein Guthaben dort.
+Die KI-Prüfung ist **optional**. Du brauchst dafür einen API-Key von Anthropic (in der
+[Anthropic Console](https://console.anthropic.com) anlegen) und ein Guthaben dort.
 
 Der Key wird **nur über eine Umgebungsvariable** gelesen und nie in einer Datei gespeichert:
 
@@ -197,6 +209,16 @@ Der Key wird **nur über eine Umgebungsvariable** gelesen und nie in einer Datei
 export ANTHROPIC_API_KEY="dein-key"
 python app.py
 ```
+
+Tipp: Ein Key, den du direkt in den Befehl tippst, steht danach in der Verlaufsliste deiner Shell. Ohne Spuren geht
+es mit einer Abfrage (in `zsh`, dem Standard auf dem Mac; in `bash` heißt sie `read -s -p "API-Key: " ANTHROPIC_API_KEY`):
+
+```bash
+read -s "ANTHROPIC_API_KEY?API-Key: " && export ANTHROPIC_API_KEY
+python app.py
+```
+
+Eine `.env`-Datei liest die App **nicht**.
 
 Die Variable gilt nur für dieses Terminalfenster. Setze oder ändere sie **vor** dem Start der App. Teile
 den Key nicht und lege ihn nicht im Projektordner ab.
@@ -208,6 +230,7 @@ den Key nicht und lege ihn nicht im Projektordner ab.
   Preis. Die dafür hinterlegten Preise sind grob. Verbindlich ist die Preisliste von Anthropic.
   Mehr gewählte KI-Module bedeuten eine längere Antwort und höhere Kosten.
 - **Länge**: Die KI-Prüfung nimmt höchstens 60 000 Zeichen auf einmal. Prüfe längere Texte abschnittsweise.
+  Antwortet die KI nicht innerhalb von **5 Minuten**, bricht die App ab und meldet es.
 - **Datenschutz**: siehe [unten](#datenschutz).
 
 ## Einstellungen und Umgebungsvariablen
@@ -215,11 +238,13 @@ den Key nicht und lege ihn nicht im Projektordner ab.
 | Variable | Wirkung | Standard |
 |---|---|---|
 | `ANTHROPIC_API_KEY` | API-Key für die KI-Prüfung | nicht gesetzt |
+| `ANTHROPIC_AUTH_TOKEN` | Alternative zum Key (Token-Anmeldung des SDK) | nicht gesetzt |
+| `ANTHROPIC_BASE_URL` | Anderer Endpunkt für KI-Anfragen. Wenn gesetzt, gehen deine Texte **nicht** an die Anthropic-API, sondern dorthin. Die App warnt beim Start. Normalerweise **nicht setzen**. | nicht gesetzt |
 | `SPACY_MODEL` | Name des spaCy-Modells | `de_core_news_lg` |
-| `PORT` | Port des lokalen Servers | `8765` |
+| `FEINSCHLIFF_PORT` | Port des lokalen Servers (Zahl von 1 bis 65535). Ist er belegt, beendet sich die App mit einer Meldung, ohne den Browser zu öffnen. | `8765` |
 | `LOG_LEVEL` | Ausführlichkeit der Terminal-Meldungen: `DEBUG`, `INFO`, `WARNING` | `INFO` |
 
-Beispiel: `PORT=8770 python app.py`.
+Beispiel: `FEINSCHLIFF_PORT=8770 python app.py`.
 
 Deine Auswahl in der App (Module, Zahlenwerte, Felder, KI-Modell, Schriftgröße) merkt sich der **Browser**.
 Das gilt pro Browser und geht verloren, wenn du den Browser-Speicher leerst.
@@ -235,7 +260,7 @@ Ort, bevor du das Projekt löschst oder neu herunterlädst. Danach legst du ihn 
 zurück, direkt neben `app.py`. Die App benutzt die Dateien sofort. Der Ordnername `eigene-listen` und die
 Dateinamen darin müssen **genau so bleiben**, sonst erkennt die App sie nicht. Der Ordner kann Namen aus
 deinem Buch enthalten und gehört deshalb nicht in ein öffentliches Repository (er steht in der
-`.gitignore`, sobald das Projekt unter Git liegt).
+`.gitignore` und wird deshalb nicht mit hochgeladen).
 
 ## Anderes spaCy-Modell verwenden
 
@@ -300,7 +325,7 @@ dabei erhalten.
 | Aktion | Wirkung |
 |---|---|
 | ⌘↵ / Strg+Enter | Offline prüfen |
-| ⌥J / ⌥K | Nächster / vorheriger Fund |
+| ⌥J / ⌥K (unter Windows und Linux Alt+J / Alt+K) | Nächster / vorheriger Fund |
 | Klick auf Markierung oder Fund | Springt zur Gegenstelle |
 | In Ordnung am Fund | Du bestätigst, dass die Stelle so stimmt. Der Fund wird ausgeblendet |
 | Vorschlag übernehmen am Fund | Ersetzt die markierte Stelle durch den Vorschlag der KI |
@@ -312,15 +337,19 @@ dabei erhalten.
 
 ## Datenschutz
 
-- Der Server lauscht nur auf **127.0.0.1**, ist also von außen nicht erreichbar.
+- Der Server lauscht nur auf **127.0.0.1**, ist also von außen nicht erreichbar. Zusätzlich lehnt die App Anfragen ab,
+  die nicht an `127.0.0.1` oder `localhost` gehen oder von einer fremden Webseite stammen. So kann keine andere Seite
+  in deinem Browser die App ansprechen (zum Beispiel auf Kosten deines Keys).
 - **Offline-Prüfungen** verlassen deinen Rechner nicht. Internet braucht nur die Installation und der
   einmalige Download von LanguageTool.
 - Bei der **KI-Prüfung** wird dein Text an die **Anthropic-API** gesendet. Sende nichts, was du nicht
   senden darfst. Es werden nur der Text und die Einstellungen der gewählten Module übertragen. Beim
   Modul „Schachtelsätze“ gehen **nur die gefundenen Sätze** an die API, nicht der ganze Text (es sei denn,
   du wählst zusätzlich andere KI-Module).
+- Beim Modul **Rechtschreibung (KI)** gehen außerdem die Wörter aus dem Feld „Eigene Wörter“ und aus
+  `eigene-listen/namen.txt` (zum Beispiel **Figurennamen**) mit an die API, damit sie nicht als Fehler gelten.
 - Bei **Umformulieren** gehen nur der eine Satz, der Grund des Fundes und etwas Kontext davor und danach an die API.
-- Der API-Key liegt nur in der Umgebungsvariable.
+- Der API-Key liegt nur in der Umgebungsvariable. Eine `.env`-Datei liest die App **nicht**.
 
 ## Grenzen
 
@@ -347,7 +376,7 @@ dabei erhalten.
 | „Der Text ist zu lang“ | Offline sind bis 150 000 Zeichen erlaubt, bei der KI 60 000. Prüfe längere Texte abschnittsweise. |
 | „Kein API-Key gefunden“ | `export ANTHROPIC_API_KEY="…"` im selben Terminal setzen, App beenden (Ctrl+C) und neu starten. |
 | „Der API-Key wurde abgelehnt“ | Key in der Anthropic Console prüfen. |
-| Port 8765 ist belegt | Mit anderem Port starten: `PORT=8770 python app.py`. |
+| „Port 8765 ist belegt“ beim Start | Feinschliff läuft vielleicht schon, oder ein anderes Programm nutzt den Port. Mit anderem Port starten: `FEINSCHLIFF_PORT=8770 python app.py`. |
 | „… läuft nur mit der KI-Prüfung“ / „nur offline“ | Du hast Module gewählt, die zum Knopf nicht passen. Siehe die Etiketten in der Liste links. |
 | Oben steht „Fehler – Einzelheiten rechts“ | Die genaue Meldung steht rechts über der Liste, die Ursache im Terminal. |
 | Offline findet nichts, die KI viel | Normal: LanguageTool ist vorsichtig, die KI breiter. Prüfe, welche Hinweise stimmen. |
@@ -360,6 +389,7 @@ dabei erhalten.
 app.py                  Webserver (Flask) und Einstiegspunkt
 modules.py              Register aller Prüfmodule (Gruppen, Optionen, Etiketten)
 checker.py              Erzählzeit und Erzählperspektive (offline, spaCy)
+grundlagen.py           Gemeinsame Bausteine (Fund, Erkennung direkter Rede)
 satzbau.py              Satzlänge, Kurze Sätze, Satzanfänge, Schachtelsätze, Passiv
 wortwahl.py             Füllwörter, Redebegleitung, Gefühle benannt
 wiederholung.py         Wortwiederholungen, Wortfolgen
@@ -367,11 +397,14 @@ eigene_listen.py        Eigene Wortlisten lesen und speichern (Ordner eigene-lis
 sprachrichtigkeit.py    LanguageTool, einheitliche Schreibweisen, Kommafolgen
 ai_check.py             KI-Prüfung über die Claude-API
 listen/                 Startlisten als Textdateien (siehe listen/README.md)
-eigene-listen/         Deine eigenen Wörter (wird angelegt; nicht veröffentlichen)
+eigene-listen/          Deine eigenen Wörter (wird angelegt; nicht veröffentlichen)
 templates/index.html    Oberfläche (Seitenaufbau)
 static/app.css          Oberfläche (Gestaltung, hell und dunkel)
 static/app.js           Oberfläche (Verhalten)
 requirements.txt        Python-Abhängigkeiten
+CHANGELOG.md            Änderungen pro Version
+LICENSE                 MIT-Lizenz
+.gitignore              Was nicht ins Repository gehört (.venv, eigene-listen/, Keys)
 ```
 
 ## Lizenz und verwendete Komponenten

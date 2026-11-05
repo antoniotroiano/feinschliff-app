@@ -6,12 +6,12 @@ import logging
 import os
 import re
 import time
-from dataclasses import dataclass
 
 import spacy
 
+from grundlagen import Finding, mask_dialog  # noqa: F401 (von hier aus weiter erreichbar)
+
 # Anführungszeichen-Paare: („…“, »…«, "…", ‚…‘ bewusst nicht, wegen Apostrophen)
-QUOTE_PATTERN = re.compile(r'„[^“”"]*[“”"]|»[^«]*«|«[^»]*»|"[^"]*"|“[^”]*”')
 
 # Zeitwörter, die oft auf Vorzeitigkeit hindeuten
 VORZEITIG_HINWEISE = {
@@ -76,29 +76,6 @@ def get_nlp():
     return _nlp
 
 
-@dataclass
-class Finding:
-    start: int
-    end: int
-    level: str     # Dringlichkeit: "rot" (Verstoß) | "gelb" (prüfen) | "blau" (Vorschlag)
-    module: str    # Modul-ID, siehe modules.py
-    tense: str     # kurze Bezeichnung des Fundes
-    message: str
-    ki: bool = False
-    vorschlag: str = ""   # KI: Ersatztext für genau die markierte Stelle (leer = keiner)
-
-
-def mask_dialog(text: str):
-    """Ersetzt Dialoge durch Leerzeichen gleicher Länge (Offsets bleiben erhalten)."""
-    spans = [(m.start(), m.end()) for m in QUOTE_PATTERN.finditer(text)]
-    masked = list(text)
-    for s, e in spans:
-        for i in range(s, e):
-            if masked[i] != "\n":
-                masked[i] = " "
-    return "".join(masked), spans
-
-
 def _in_spans(pos, spans):
     return any(s <= pos < e for s, e in spans)
 
@@ -129,7 +106,6 @@ def classify_sentence(sent):
             continue
         tense = morph.get("Tense")  # Past / Pres
         lemma = tok.lemma_.lower()
-        child_forms = [c.morph.to_dict().get("VerbForm") for c in tok.children]
         # Perfekt: haben/sein + Partizip als Verbteil (oc). Ein Partizip als Prädikativ (pd)
         # ist Zustandspassiv/Adjektiv ("Die Tür war geöffnet", "Luca war überrascht").
         perf_part = any(
@@ -189,7 +165,7 @@ def check_text(text: str, perspective: str = PERSPEKTIVEN[0], allowed=None, chec
     pf, notes = check_perspective(doc, perspective)
     findings += pf
     if offline:
-        import satzbau, sprachrichtigkeit, wiederholung, wortwahl  # erst hier, um einen Importkreis zu vermeiden
+        import satzbau, sprachrichtigkeit, wiederholung, wortwahl  # erst hier: diese Module brauchen get_nlp aus dieser Datei
         findings += satzbau.pruefen(doc, offline)
         findings += wortwahl.pruefen(doc, text, spans, offline)
         findings += wiederholung.pruefen(doc, offline)

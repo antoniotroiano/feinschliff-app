@@ -1,5 +1,5 @@
 """Offline-Prüfungen zum Satzbau (spaCy). Direkte Rede ist im übergebenen Doc bereits maskiert."""
-from checker import Finding
+from grundlagen import Finding, mask_dialog
 
 
 def _tokens(sent):
@@ -105,13 +105,21 @@ def schachtelsaetze(doc, ab):
             for s, e, t in kandidaten(doc, ab)]
 
 
+MAX_KANDIDAT = 1500  # Zeichen; längere „Sätze“ (meist ohne Satzzeichen) gehen nicht an die KI
+
+
 def schachtel_kandidaten(text, ab, limit=25):
-    """Für die KI: die am tiefsten verschachtelten Sätze samt Wortlaut. Gibt (Liste, Gesamtzahl) zurück."""
-    from checker import get_nlp, mask_dialog  # erst hier, um einen Importkreis zu vermeiden
+    """Für die KI: die am tiefsten verschachtelten Sätze samt Wortlaut.
+
+    Gibt (Liste, Gesamtzahl der Kandidaten, Zahl der zu langen, nicht gesendeten Sätze) zurück.
+    """
+    from checker import get_nlp  # erst hier: checker.py lädt dieses Modul selbst erst bei der Prüfung
     masked, _ = mask_dialog(text)
     alle = kandidaten(get_nlp()(masked), ab)
-    auswahl = sorted(sorted(alle, key=lambda k: -k[2])[:limit])
-    return [{"start": s, "end": e, "stufe": t, "satz": text[s:e]} for s, e, t in auswahl], len(alle)
+    passend = [k for k in alle if k[1] - k[0] <= MAX_KANDIDAT]
+    auswahl = sorted(sorted(passend, key=lambda k: -k[2])[:limit])
+    return ([{"start": s, "end": e, "stufe": t, "satz": text[s:e]} for s, e, t in auswahl],
+            len(passend), len(alle) - len(passend))
 
 
 def passiv(doc):

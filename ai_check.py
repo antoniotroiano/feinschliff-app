@@ -10,7 +10,7 @@ import os
 import anthropic
 
 import eigene_listen
-from checker import Finding, mask_dialog
+from grundlagen import Finding, mask_dialog
 
 MODELLE = {
     "Haiku 5.5 (günstig)": "claude-haiku-5-5",
@@ -26,6 +26,7 @@ PREISE = {
 }
 
 MAX_ZEICHEN = 60_000
+KI_TIMEOUT = 300  # Sekunden, danach bricht die App die Anfrage ab
 
 PERSPEKTIV_REGELN = {
     "Ich-Perspektive": "Ich-Perspektive: Der Erzähler ist eine Figur und sagt „ich“. Er kann fremde Gedanken "
@@ -211,7 +212,7 @@ def _anfrage(model_label, system, nutzer, schema, max_tokens=16000):
     if not (os.environ.get("ANTHROPIC_API_KEY") or os.environ.get("ANTHROPIC_AUTH_TOKEN")):
         raise KIFehler("Kein API-Key gefunden. Beende die App (Ctrl+C), setze im Terminal "
                        "export ANTHROPIC_API_KEY=… und starte sie dann neu.")
-    client = anthropic.Anthropic()
+    client = anthropic.Anthropic(timeout=KI_TIMEOUT)
     try:
         resp = client.messages.create(
             model=model, max_tokens=max_tokens, system=system,
@@ -227,6 +228,10 @@ def _anfrage(model_label, system, nutzer, schema, max_tokens=16000):
     except anthropic.RateLimitError:
         log.warning("API-Fehler: Ratenlimit (429)")
         raise KIFehler("Zu viele Anfragen. Bitte kurz warten und erneut versuchen.")
+    except anthropic.APITimeoutError:
+        log.warning("API-Fehler: Zeitüberschreitung nach %d s", KI_TIMEOUT)
+        raise KIFehler(f"Die KI hat nicht innerhalb von {KI_TIMEOUT // 60} Minuten geantwortet. "
+                       "Bitte einen kürzeren Text oder weniger Module wählen und erneut versuchen.")
     except anthropic.APIConnectionError as e:
         log.warning("API-Fehler: keine Verbindung (%s)", type(e.__cause__ or e).__name__)
         raise KIFehler("Keine Verbindung zur Anthropic-API. Internetverbindung prüfen.")

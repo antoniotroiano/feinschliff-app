@@ -2,21 +2,21 @@
 from pathlib import Path
 
 import eigene_listen
-from checker import Finding
+from grundlagen import Finding
 
 LISTEN = Path(__file__).parent / "listen"
 
 
-def _liste(name):
+def liste_laden(name):
     """Liest eine Wortliste aus listen/<name>: ein Wort pro Zeile, Zeilen mit # sind Kommentare."""
     zeilen = (LISTEN / name).read_text(encoding="utf-8").splitlines()
     return {z.strip().lower() for z in zeilen if z.strip() and not z.lstrip().startswith("#")}
 
 
-FUELLWOERTER = _liste("fuellwoerter.txt")        # oft ohne Verlust streichbar
-SPRECHVERBEN = _liste("sprechverben.txt")        # Verben der Redebegleitung
-GEFUEHLS_ADJ = _liste("gefuehle_adjektive.txt")  # für „Tell“-Sätze
-GEFUEHLS_NOMEN = _liste("gefuehle_nomen.txt")
+FUELLWOERTER = liste_laden("fuellwoerter.txt")        # oft ohne Verlust streichbar
+SPRECHVERBEN = liste_laden("sprechverben.txt")        # Verben der Redebegleitung
+GEFUEHLS_ADJ = liste_laden("gefuehle_adjektive.txt")  # für „Tell“-Sätze
+GEFUEHLS_NOMEN = liste_laden("gefuehle_nomen.txt")
 SEIN_VERBEN = {"sein", "werden", "bleiben", "wirken", "scheinen", "fühlen"}
 HABEN_VERBEN = {"haben", "fühlen", "spüren", "empfinden", "verspüren", "überkommen"}
 
