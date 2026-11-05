@@ -33,6 +33,7 @@ API-Key einschaltest.
 - [Grenzen](#grenzen)
 - [Fehlerbehebung](#fehlerbehebung)
 - [Projektaufbau](#projektaufbau)
+- [Lizenz und verwendete Komponenten](#lizenz-und-verwendete-komponenten)
 
 ## Was geprüft wird
 
@@ -372,3 +373,22 @@ static/app.css          Oberfläche (Gestaltung, hell und dunkel)
 static/app.js           Oberfläche (Verhalten)
 requirements.txt        Python-Abhängigkeiten
 ```
+
+## Lizenz und verwendete Komponenten
+
+Der Code von Feinschliff steht unter der **MIT-Lizenz** (siehe Datei `LICENSE`). Du darfst ihn nutzen, ändern und
+weitergeben, der Copyright-Hinweis muss erhalten bleiben. Die App funktioniert ohne Gewähr.
+
+Feinschliff liefert die folgenden Komponenten **nicht mit**. Sie werden bei der Installation geladen und haben
+jeweils ihre **eigene Lizenz** (Stand der Prüfung: Angaben in den installierten Paketen, bitte bei Bedarf nachlesen):
+
+| Komponente | Wofür | Lizenz laut Paket |
+|---|---|---|
+| [Flask](https://flask.palletsprojects.com/) | lokaler Webserver | BSD-3-Clause |
+| [spaCy](https://spacy.io/) mit Modell `de_core_news_lg` | Satz- und Wortanalyse offline | MIT |
+| [LanguageTool](https://languagetool.org/) über [language_tool_python](https://github.com/jxmorris12/language_tool_python) | Rechtschreibung und Grammatik offline | Paket: GPL-3.0; LanguageTool selbst: LGPL |
+| [Anthropic Python SDK](https://github.com/anthropics/anthropic-sdk-python) | optionale KI-Prüfung | Apache-2.0 |
+
+**Hinweis zu GPL:** Das Paket `language_tool_python` steht unter der GPL. Feinschliff nutzt es nur als Bibliothek und
+liefert es nicht aus. Wer Feinschliff **zusammen mit** diesem Paket weitergibt (zum Beispiel als fertiges Installationspaket),
+sollte die Bedingungen der GPL prüfen. Das ist keine Rechtsberatung.
