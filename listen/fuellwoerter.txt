@@ -1,0 +1,32 @@
+# Füllwörter und Verstärker
+# Modul „Füllwörter“ (Wortwahl). Wird nur als Adverb/Partikel im Erzähltext markiert.
+# Ein Wort pro Zeile, Kleinbuchstaben. Zeilen mit # werden ignoriert. Nach Änderungen die App neu starten.
+absolut
+allerdings
+durchaus
+echt
+eh
+eher
+eigentlich
+einfach
+ganz
+gewissermaßen
+grundsätzlich
+halt
+immerhin
+irgendwie
+letztendlich
+letztlich
+mal
+nämlich
+praktisch
+quasi
+relativ
+schlichtweg
+sehr
+sozusagen
+total
+völlig
+wirklich
+ziemlich
+überhaupt

@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Feinschliff – bringt deinen Text in Form</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='app.css') }}">
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <div class="brand">
+      <h1>Feinschliff</h1>
+      <span class="claim">bringt deinen Text in Form</span>
+    </div>
+    <div class="center">
+      <span id="words" class="words">0 Wörter</span>
+      <span id="status" class="status" role="status" aria-live="polite"></span>
+    </div>
+    <div class="meta">
+      <button type="button" class="icon legend-btn" popovertarget="legend" aria-label="Legende anzeigen">Legende</button>
+      <span class="fs" role="group" aria-label="Schriftgröße">
+        <button type="button" class="icon" id="fs-minus" aria-label="Schrift kleiner" title="Schrift kleiner">A−</button>
+        <button type="button" class="icon" id="fs-plus" aria-label="Schrift größer" title="Schrift größer">A+</button>
+      </span>
+    </div>
+  </header>
+
+  <div class="work">
+    <aside class="side" aria-label="Einstellungen">
+      <div class="side-scroll">
+        <div class="quick" role="group" aria-label="Schnellwahl">
+          <span>Prüfungen</span>
+          <button type="button" class="link" data-quick="all">Alle</button>
+          <button type="button" class="link" data-quick="none">Keine</button>
+        </div>
+
+        {% for g in gruppen %}
+        <details class="group" data-group="{{ g.id }}">
+          <summary><i class="msq" style="--gh: {{ g.farbe }}"></i>{{ g.name }}</summary>
+          {% for m in g.module %}
+          <div class="module{% if m.standard %} on{% endif %}" data-module="{{ m.id }}" data-default="{{ 1 if m.standard else 0 }}">
+            <label class="check mod-head">
+              <input type="checkbox" class="mod-on" value="{{ m.id }}"{% if m.standard %} checked{% endif %}>
+              <span><span class="n">{{ m.name }}{% if m.art == "ki" %} <span class="tag ki" title="Läuft nur mit der KI-Prüfung">KI</span>{% elif m.art == "offline" %} <span class="tag" title="Läuft nur mit „Prüfen“ (offline)">Offline</span>{% else %} <span class="tag" title="Läuft mit „Prüfen“ und mit der KI-Prüfung">Offline + KI</span>{% endif %}</span><small>{{ m.hilfe }}</small></span>
+            </label>
+            <div class="mod-opts">
+              {% for o in m.optionen %}
+              {% if o.typ == "mehrfach" %}
+              <div class="checks" data-opt="{{ o.id }}" data-typ="mehrfach" data-default='{{ o.standard|tojson }}'>
+                {% for wert, hinweis in o.werte %}
+                <label class="check" title="{{ hinweis }}">
+                  <input type="checkbox" value="{{ wert }}"{% if wert in o.standard %} checked{% endif %}>
+                  <span><span class="n">{{ wert }}</span></span>
+                </label>
+                {% endfor %}
+              </div>
+              {% elif o.typ == "schalter" %}
+              <label class="check sw-opt">
+                <input type="checkbox" data-opt="{{ o.id }}" data-typ="schalter"{% if o.standard %} checked{% endif %}>
+                <span class="n">{{ o.label }}</span>
+              </label>
+              {% elif o.typ == "text" %}
+              <label class="num txt">
+                <span>{{ o.label }}</span>
+                <input type="text" data-opt="{{ o.id }}" data-typ="text" value="{{ o.standard }}" maxlength="300" placeholder="{{ o.platzhalter or 'z. B. grad, halt' }}">
+              </label>
+              {% if o.liste %}<button type="button" class="link save-list" data-liste="{{ o.liste }}" data-opt="{{ o.id }}" title="Speichert die Wörter dauerhaft im Ordner eigene-listen/ und leert das Feld">In Liste übernehmen</button>{% endif %}
+              {% elif o.typ == "zahl" %}
+              <label class="num">
+                <span>{{ o.label }}</span>
+                <input type="number" data-opt="{{ o.id }}" data-typ="zahl" min="{{ o.min }}" max="{{ o.max }}" value="{{ o.standard }}">
+                {% if o.einheit %}<span>{{ o.einheit }}</span>{% endif %}
+              </label>
+              {% else %}
+              <select data-opt="{{ o.id }}" data-typ="auswahl" data-default="{{ o.standard }}" aria-label="{{ m.name }}">
+                {% for wert, hinweis in o.werte %}<option{% if wert == o.standard %} selected{% endif %}>{{ wert }}</option>{% endfor %}
+              </select>
+              {% endif %}
+              {% endfor %}
+            </div>
+          </div>
+          {% endfor %}
+        </details>
+        {% endfor %}
+      </div>
+
+      <div class="actions">
+        <button type="button" id="go" class="btn primary">Prüfen <kbd>⌘↵</kbd></button>
+        <div class="ai">
+          <label for="model">KI-Modell</label>
+          <select id="model">
+            {% for m in modelle %}<option>{{ m }}</option>{% endfor %}
+          </select>
+          <button type="button" id="goai" class="btn">KI-Prüfung</button>
+        </div>
+        <p class="privacy">Die KI-Prüfung sendet den Text an die Anthropic-API und kostet pro Prüfung wenige Cent. „Prüfen“ läuft offline auf deinem Rechner.</p>
+      </div>
+    </aside>
+
+    <main class="editor-pane">
+      <div id="editor" class="editor" spellcheck="false" role="textbox" aria-multiline="true"
+           aria-label="Manuskripttext" data-placeholder="Absatz hier einfügen oder schreiben …"></div>
+    </main>
+
+    <section class="results" aria-label="Funde">
+      <div class="res-head">
+        <div class="res-title">
+          <h2>Funde <span id="count" class="count"></span></h2>
+          <div class="nav">
+            <button type="button" class="icon" id="prev" aria-label="Vorheriger Fund" title="Vorheriger Fund (⌥K)">↑</button>
+            <button type="button" class="icon" id="next" aria-label="Nächster Fund" title="Nächster Fund (⌥J)">↓</button>
+          </div>
+        </div>
+        <div id="chips" class="chips"></div>
+        <button type="button" class="link" id="ok-toggle" hidden></button>
+      </div>
+      <div id="notes"></div>
+      <div id="list" class="list"></div>
+    </section>
+  </div>
+</div>
+
+<div id="legend" popover aria-label="Legende">
+  <h2>Legende</h2>
+  <div id="legend-body"></div>
+</div>
+
+<script id="cfg" type="application/json">{{ cfg|tojson }}</script>
+<script src="{{ url_for('static', filename='app.js') }}"></script>
+</body>
+</html>

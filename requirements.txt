@@ -1,0 +1,4 @@
+flask
+spacy
+anthropic
+language_tool_python

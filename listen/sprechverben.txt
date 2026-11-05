@@ -1,0 +1,43 @@
+# Verben der Redebegleitung
+# Modul „Redebegleitung“ (Wortwahl). Grundformen (Infinitiv).
+# Ein Wort pro Zeile, Kleinbuchstaben. Zeilen mit # werden ignoriert. Nach Änderungen die App neu starten.
+antworten
+bemerken
+brummeln
+brummen
+brüllen
+entgegnen
+ergänzen
+erklären
+erwidern
+fauchen
+flehen
+fluchen
+flüstern
+fragen
+fügen
+hauchen
+jammern
+keuchen
+knurren
+kreischen
+krächzen
+lallen
+meinen
+murmeln
+nuscheln
+raunen
+rufen
+sagen
+schimpfen
+schluchzen
+schnauben
+schreien
+seufzen
+sprechen
+stammeln
+stottern
+stöhnen
+tuscheln
+wispern
+zischen

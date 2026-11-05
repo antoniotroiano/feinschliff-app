@@ -1,0 +1,42 @@
+# Schreibvarianten
+# Modul „Einheitliche Schreibweisen“ (Sprachrichtigkeit). Kommen beide Schreibweisen eines Paares im Text vor,
+# wird die seltenere markiert. Ein Paar pro Zeile, mit | getrennt, Groß-/Kleinschreibung egal.
+# Ein * am Wortende erlaubt Endungen (Beugung), zum Beispiel platzier*|plazier* für platziert/plaziert.
+# Zeilen mit # werden ignoriert. Nach Änderungen die App neu starten.
+albtraum|alptraum
+aufwendig*|aufwändig*
+dass|daß
+delfin|delphin
+fantasie|phantasie
+fluss|fluß
+foto|photo
+geographie|geografie
+joghurt|jogurt
+ketchup|ketschup
+kuss|kuß
+känguru|känguruh
+lässt|läßt
+majonäse|mayonnaise
+mikrofon|mikrophon
+mop|mopp
+musste|mußte
+muss|muß
+nummerier*|numerier*
+ok|okay
+orthographie|orthografie
+panther|panter
+platzier*|plazier*
+portemonnaie|portmonee
+quäntchen|quentchen
+saxofon|saxophon
+schifffahrt|schiffahrt
+schloss|schloß
+selbstständig|selbständig
+spaghetti|spagetti
+stopp|stop
+straße|strasse
+stängel|stengel
+telefon|telephon
+thunfisch|tunfisch
+tipp|tip
+weiß|weiss

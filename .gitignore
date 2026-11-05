@@ -1,0 +1,24 @@
+# Python
+.venv/
+venv/
+__pycache__/
+*.pyc
+
+# Persönliche Daten: eigene Wortlisten können Namen aus dem Buch enthalten
+eigene-listen/
+
+# Schlüssel und lokale Einstellungen
+.env
+.env.*
+*.key
+
+# Manuskripte und Testtexte
+manuskript/
+*.docx
+
+# Werkzeuge und Betriebssystem
+.claude/
+.DS_Store
+
+# Persönliche Merkliste
+TODO.md

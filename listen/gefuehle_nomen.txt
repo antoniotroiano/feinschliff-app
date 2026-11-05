@@ -1,0 +1,34 @@
+# Gefühlsnomen
+# Modul „Gefühle benannt“ (Wortwahl). Treffer bei „hatte/spürte/empfand + Nomen“.
+# Ein Wort pro Zeile, Kleinbuchstaben. Zeilen mit # werden ignoriert. Nach Änderungen die App neu starten.
+angst
+begeisterung
+eifersucht
+einsamkeit
+ekel
+entsetzen
+enttäuschung
+erleichterung
+freude
+furcht
+hass
+hoffnung
+kummer
+langeweile
+mitleid
+neid
+nervosität
+neugier
+panik
+reue
+scham
+schuldgefühl
+sehnsucht
+sorge
+trauer
+unsicherheit
+verlegenheit
+verzweiflung
+wehmut
+wut
+zorn
